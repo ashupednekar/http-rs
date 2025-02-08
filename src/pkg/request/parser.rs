@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use url::Url;
+
 use super::{Body, Method, Request};
 
 use crate::prelude::Result;
@@ -14,7 +16,7 @@ impl Request{
         //mention potential caveats
             
         let sep = b"\r\n\r\n";
-        let (method, path, headers, body) = if let Some(pos) = buf.windows(sep.len()).position(|window| window == sep){
+        let (method, path, headers, params, body) = if let Some(pos) = buf.windows(sep.len()).position(|window| window == sep){
             let meta = String::from_utf8(buf[..pos].to_vec())?;
             let body = Body::Bytes(buf[pos+4..].to_vec());
 
@@ -33,6 +35,11 @@ impl Request{
                 .ok_or("missing HTTP path")?
                 .to_string();
 
+            let params: HashMap<String, String> = Url::parse(&path)?
+                .query_pairs()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect();
+
             let headers_str = parts
                 .next()
                 .unwrap_or(": ")
@@ -49,12 +56,11 @@ impl Request{
                 })
                 .collect();
 
-            (method, path, headers, body)
+            (method, path, headers, params, body)
         }else{
             return Err("unterminated request buffer".into());
         };
 
-        let params = HashMap::new();
         Ok(Self{
             method, path, headers, params, body
         })
