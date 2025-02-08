@@ -1,30 +1,27 @@
-use clap::{Parser, Subcommand};
 use crate::{pkg::server::listen::listen, prelude::Result};
-
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(about = "lets you start the application")]
-struct Cmd{
+struct Cmd {
     #[command(subcommand)]
-    command: Option<SubcommandType>
+    command: Option<SubcommandType>,
 }
 
 #[derive(Subcommand)]
-enum SubcommandType{
+enum SubcommandType {
     Listen,
-    Cli
+    Cli,
 }
 
-pub async fn run() -> Result<()>{
+pub async fn run() -> Result<()> {
     let args = Cmd::parse();
 
-    match args.command{
+    match args.command {
         Some(SubcommandType::Listen) => {
             listen().await?;
         }
-        Some(SubcommandType::Cli) => {
-
-        }
+        Some(SubcommandType::Cli) => {}
         None => {
             tracing::error!("no subcommand passed");
         }
@@ -32,5 +29,3 @@ pub async fn run() -> Result<()>{
 
     Ok(())
 }
-
-
