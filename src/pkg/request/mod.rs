@@ -1,7 +1,7 @@
 mod parser;
 mod builder;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,6 +11,20 @@ pub enum Method{
     PATCH,
     PUT,
     DELETE 
+}
+
+impl FromStr for Method {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_uppercase().as_str() {
+            "GET" => Ok(Method::GET),
+            "POST" => Ok(Method::POST),
+            "PATCH" => Ok(Method::PATCH),
+            "PUT" => Ok(Method::PUT),
+            "DELETE" => Ok(Method::DELETE),
+            _ => Err(()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
