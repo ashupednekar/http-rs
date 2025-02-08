@@ -2,13 +2,11 @@ use std::collections::HashMap;
 
 pub mod builder;
 
-
 pub struct Response {
     pub body: Vec<u8>,
     pub headers: HashMap<String, String>,
     pub status: StatusCode,
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StatusCode {
@@ -45,4 +43,3 @@ impl StatusCode {
         format!("HTTP/1.1 {} {}\r\n", *self as i32, reason)
     }
 }
-

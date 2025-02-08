@@ -1,4 +1,7 @@
-use crate::{pkg::server::listen::listen, prelude::Result};
+use crate::{
+    pkg::{handler::handle, server::HTTPServer},
+    prelude::Result,
+};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -11,7 +14,6 @@ struct Cmd {
 #[derive(Subcommand)]
 enum SubcommandType {
     Listen,
-    Cli,
 }
 
 pub async fn run() -> Result<()> {
@@ -19,9 +21,10 @@ pub async fn run() -> Result<()> {
 
     match args.command {
         Some(SubcommandType::Listen) => {
-            listen().await?;
+            let mut server = HTTPServer::new();
+            server.route("/api", handle)?;
+            server.listen().await?;
         }
-        Some(SubcommandType::Cli) => {}
         None => {
             tracing::error!("no subcommand passed");
         }

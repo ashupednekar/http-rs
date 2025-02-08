@@ -1,40 +1,42 @@
-use crate::{conf::settings, pkg::{handler::handle, request::Request}, prelude::Result};
+use crate::{
+    pkg::request::Request,
+    prelude::Result,
+};
+use matchit::Router;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
 };
 
-pub async fn listen() -> Result<()> {
-    let addr = format!("0.0.0.0:{}", &settings.listen_port);
-    let ln = TcpListener::bind(&addr).await?;
-    tracing::info!("listening at {}", &addr);
-    loop {
-        let (socket, _) = ln.accept().await?;
-        tokio::spawn(async move {
-            if handle_connection(socket).await.is_err() {
-                tracing::error!("error handling connection");
-            };
-        });
+use super::{router::route, HTTPServer, Handler};
+
+impl HTTPServer {
+    pub async fn listen(&self) -> Result<()> {
+        let ln = TcpListener::bind(&self.addr).await?;
+        tracing::info!("listening at {}", &self.addr);
+        loop {
+            let (socket, _) = ln.accept().await?;
+            let routes = self.routes.clone();
+            tokio::spawn(async move {
+                if handle_connection(socket, routes).await.is_err() {
+                    tracing::error!("error handling connection");
+                };
+            });
+        }
     }
 }
 
-pub async fn handle_connection(mut socket: TcpStream) -> Result<()> {
+pub async fn handle_connection(mut socket: TcpStream, routes: Router<Handler>) -> Result<()> {
     let mut buf = vec![0; 1024];
     loop {
-        let n = socket
-            .read(&mut buf)
-            .await
-            .expect("failed to read from socket");
+        let n = socket.read(&mut buf).await?;
         if n == 0 {
             return Ok(());
         }
-        let request = Request::parse(buf[..n].to_vec())?;
-        let response = handle(request)?; 
-        if let Err(e) = socket
-            .write_all(&response.to_bytes())
-            .await
-        {
-            tracing::error!("error writing to stream: {}", &e);
-        }
+        let body = buf[..n].to_vec(); 
+
+        let request = Request::parse(body)?;
+        let res = route(request, routes.clone()).await?;
+        socket.write_all(&res).await?
     }
 }
