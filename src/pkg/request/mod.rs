@@ -32,20 +32,17 @@ pub enum Body {
     Text(String),
 }
 
-impl Body{
-    pub fn new(buf: Vec<u8>) -> Self{
-        match serde_json::from_slice(&buf){
+impl Body {
+    pub fn new(buf: Vec<u8>) -> Self {
+        match serde_json::from_slice(&buf) {
             Ok(v) => Body::Json(v),
-            Err(_) => {
-                match String::from_utf8(buf.clone()){
-                    Ok(s) => Body::Text(s),
-                    Err(_) => Body::Bytes(buf)
-                }
-            }
+            Err(_) => match String::from_utf8(buf.clone()) {
+                Ok(s) => Body::Text(s),
+                Err(_) => Body::Bytes(buf),
+            },
         }
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct Request {
