@@ -4,7 +4,7 @@ mod builder;
 use std::collections::HashMap;
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Method{
     GET,
     POST,
@@ -13,7 +13,7 @@ pub enum Method{
     DELETE 
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Body{
     Json(serde_json::Value),
     Bytes(Vec<u8>),
