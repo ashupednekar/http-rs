@@ -7,12 +7,12 @@ use super::{Body, Method, Request};
 use crate::prelude::Result;
 
 impl Request {
-    pub fn new(buf: Vec<u8>) -> Result<Self> {
+    pub fn parse(buf: Vec<u8>) -> Result<Self> {
         let sep = b"\r\n\r\n";
         let (method, path, headers, params, body) =
             if let Some(pos) = buf.windows(sep.len()).position(|window| window == sep) {
                 let meta = String::from_utf8(buf[..pos].to_vec())?;
-                let body = Body::Bytes(buf[pos + 4..].to_vec());
+                let body = Body::new(buf[pos + 4..].to_vec());
 
                 let mut parts = meta.splitn(2, "\r\n");
                 let info = parts.next().ok_or("malformed http payload")?;
@@ -24,7 +24,7 @@ impl Request {
                     .parse()
                     .map_err(|_| "invalid HTTP method")?;
 
-                let path = info_parts.next().ok_or("missing HTTP path")?.to_string();
+                let path: String = info_parts.next().ok_or("missing HTTP path")?.to_string();
 
                 let params: HashMap<String, String> =
                     Url::parse(&format!("http://dummy.host/{}", &path))?
@@ -75,7 +75,7 @@ mod tests {
             \r\n\
             hey jane";
 
-        let request = Request::new(raw_request.to_vec())?;
+        let request = Request::parse(raw_request.to_vec())?;
         tracing::info!("request: {:?}", &request);
 
         assert_eq!(request.method, Method::POST);

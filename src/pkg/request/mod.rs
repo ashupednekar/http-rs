@@ -1,4 +1,3 @@
-mod builder;
 mod parser;
 
 use std::{collections::HashMap, str::FromStr};
@@ -32,6 +31,21 @@ pub enum Body {
     Bytes(Vec<u8>),
     Text(String),
 }
+
+impl Body{
+    pub fn new(buf: Vec<u8>) -> Self{
+        match serde_json::from_slice(&buf){
+            Ok(v) => Body::Json(v),
+            Err(_) => {
+                match String::from_utf8(buf.clone()){
+                    Ok(s) => Body::Text(s),
+                    Err(_) => Body::Bytes(buf)
+                }
+            }
+        }
+    }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct Request {

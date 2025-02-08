@@ -28,7 +28,7 @@ pub async fn handle_connection(mut socket: TcpStream) -> Result<()> {
         if n == 0 {
             return Ok(());
         }
-        let request = Request::new(buf[..n].to_vec())?;
+        let request = Request::parse(buf[..n].to_vec())?;
         tracing::info!("parsed request: {:?}", &request);
 
         if let Err(e) = socket
