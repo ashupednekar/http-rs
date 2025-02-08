@@ -32,7 +32,10 @@ impl Request {
                         .map(|(k, v)| (k.to_string(), v.to_string()))
                         .collect();
 
-                let headers: HashMap<String, String> = parts.next().unwrap_or(": ").to_string()
+                let headers: HashMap<String, String> = parts
+                    .next()
+                    .unwrap_or(": ")
+                    .to_string()
                     .split("\r\n")
                     .filter_map(|s| {
                         let mut header = s.trim().splitn(2, ": ");
