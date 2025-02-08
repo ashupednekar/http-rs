@@ -34,7 +34,6 @@ pub async fn handle_connection(mut socket: TcpStream, routes: Router<Handler>) -
             return Ok(());
         }
         let body = buf[..n].to_vec(); 
-
         let request = Request::parse(body)?;
         let res = route(request, routes.clone()).await?;
         socket.write_all(&res).await?

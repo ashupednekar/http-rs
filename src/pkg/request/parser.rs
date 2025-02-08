@@ -25,9 +25,11 @@ impl Request {
                     .map_err(|_| "invalid HTTP method")?;
 
                 let path: String = info_parts.next().ok_or("missing HTTP path")?.to_string();
+                let url = Url::parse(&format!("http://dummy.host/{}", &path))?;
+                let path = &url.path().to_string()[1..];
+                let path = path.to_string();
 
-                let params: HashMap<String, String> =
-                    Url::parse(&format!("http://dummy.host/{}", &path))?
+                let params: HashMap<String, String> = url 
                         .query_pairs()
                         .map(|(k, v)| (k.to_string(), v.to_string()))
                         .collect();

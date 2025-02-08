@@ -1,7 +1,7 @@
 use matchit::Router;
 
 use crate::{
-    pkg::{handler::handle, request::Request, response::StatusCode},
+    pkg::{request::Request, response::StatusCode},
     prelude::Result,
 };
 
@@ -15,9 +15,11 @@ impl HTTPServer {
 }
 
 pub async fn route(request: Request, routes: Router<Handler>) -> Result<Vec<u8>> {
+    tracing::info!("routing to: {}", &request.path);
     let res = match routes.at(&request.path) {
-        Ok(_f) => {
-            let response = handle(request)?;
+        Ok(matched) => {
+            let handler = matched.value;
+            let response = handler(request)?;
             response.to_bytes()
         }
         Err(_) => {
