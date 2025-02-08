@@ -1,4 +1,4 @@
-use crate::{conf::settings, pkg::request::Request, prelude::Result};
+use crate::{conf::settings, pkg::{request::Request, response::{Response, StatusCode}}, prelude::Result};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
@@ -31,8 +31,10 @@ pub async fn handle_connection(mut socket: TcpStream) -> Result<()> {
         let request = Request::parse(buf[..n].to_vec())?;
         tracing::info!("parsed request: {:?}", &request);
 
+        let response = Response::new("hey jane".into(), StatusCode::Ok);
+
         if let Err(e) = socket
-            .write_all("HTTP/1.1 204 No Content\r\nContent-Length: 0\r\n\r\n".as_bytes())
+            .write_all(&response.to_bytes())
             .await
         {
             tracing::error!("error writing to stream: {}", &e);
